@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pelada do Faraó - Dashboard</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        /* Customizações do Tema Faraó/90s */
+        :root {
+            --pharaoh-gold: #FFD700;
+            --recife-orange: #FF4500;
+            --retro-purple: #4B0082;
+            --bg-sand: #fdf6e3;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-sand);
+            /* Gradiente sutil de sol */
+            background-image: linear-gradient(135deg, #fdf6e3 0%, #fff8dc 100%);
+        }
+
+        h1, h2, .retro-font {
+            font-family: 'Press Start 2P', cursive;
+            text-transform: uppercase;
+        }
+
+        /* Efeito de Título Neon/Sombra Dura */
+        .title-shadow {
+            text-shadow: 3px 3px 0px var(--recife-orange);
+        }
+
+        /* Cards com borda grossa estilo 90s */
+        .card-retro {
+            background: white;
+            border: 4px solid var(--retro-purple);
+            box-shadow: 6px 6px 0px var(--recife-orange);
+            transition: transform 0.2s;
+        }
+
+        .card-retro:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 8px 8px 0px var(--recife-orange);
+        }
+
+        /* Tabela responsiva */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        th {
+            background-color: var(--retro-purple);
+            color: var(--pharaoh-gold);
+        }
+        
+        /* Loading Spinner Solar */
+        .sun-spinner {
+            animation: spin 3s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen flex flex-col">
+
+    <header class="bg-gradient-to-r from-orange-500 to-yellow-500 p-6 text-center border-b-8 border-purple-900">
+        <div class="max-w-6xl mx-auto">
+            <h1 class="text-2xl md:text-4xl text-white title-shadow mb-2">
+                <i class="fas fa-sun text-yellow-200 sun-spinner mr-2"></i> Pelada do Faraó
+            </h1>
+            <p class="text-white font-bold text-sm md:text-lg tracking-widest bg-purple-900 inline-block px-4 py-1 skew-x-[-10deg]">
+                DESDE OS ANOS 90
+            </p>
+            <div class="mt-4 text-purple-900 font-bold text-xs md:text-sm bg-white/30 rounded-lg p-2 inline-block">
+                <i class="fas fa-calendar-alt"></i> Domingos | <i class="fas fa-clock"></i> 09h - 11h30 | <i class="fas fa-map-marker-alt"></i> Park Barro Society
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto p-4 md:p-8 space-y-12">
+        
+        <div id="loading" class="text-center py-20">
+            <i class="fas fa-futbol fa-spin text-6xl text-orange-500"></i>
+            <p class="mt-4 font-bold retro-font text-purple-900">Carregando Planilha...</p>
+        </div>
+
+        <div id="dashboard" class="hidden space-y-12">
+
+            <section>
+                <h2 class="text-xl md:text-2xl text-purple-900 mb-6 border-l-8 border-orange-500 pl-4">
+                    Destaques da Rodada
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="highlights-container">
+                    </div>
+            </section>
+
+            <section>
+                <h2 class="text-xl md:text-2xl text-purple-900 mb-6 border-l-8 border-orange-500 pl-4">
+                    No Calor do Jogo
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="matches-container">
+                    </div>
+            </section>
+
+            <section>
+                <h2 class="text-xl md:text-2xl text-purple-900 mb-6 border-l-8 border-orange-500 pl-4">
+                    Hall da Fama (Ranking)
+                </h2>
+                <div class="card-retro p-0 overflow-hidden">
+                    <div class="table-container">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="text-xs md:text-sm">
+                                    <th class="p-4">#</th>
+                                    <th class="p-4">Atleta</th>
+                                    <th class="p-4 text-center cursor-pointer hover:text-white" onclick="sortTable('points')">Pts <i class="fas fa-sort"></i></th>
+                                    <th class="p-4 text-center cursor-pointer hover:text-white" onclick="sortTable('goals')">Gols <i class="fas fa-sort"></i></th>
+                                    <th class="p-4 text-center cursor-pointer hover:text-white" onclick="sortTable('assists')">Assis <i class="fas fa-sort"></i></th>
+                                    <th class="p-4 text-center hidden md:table-cell">V</th>
+                                    <th class="p-4 text-center hidden md:table-cell">E</th>
+                                    <th class="p-4 text-center hidden md:table-cell">D</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ranking-body" class="text-sm font-bold text-gray-700 bg-white">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <footer class="bg-purple-900 text-white text-center p-6 mt-12">
+        <p class="text-xs opacity-70">Pelada do Faraó © 2026 - Powered by Lyra & Gemini Code</p>
+    </footer>
+
+    <script>
+        // =========================================================================
+        // CONFIGURAÇÃO: Substitua o link abaixo pelo link da sua planilha
+        // IMPORTANTE: Arquivo > Compartilhar > Publicar na Web > Formato CSV
+        // =========================================================================
+        const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ3Y2D3uC4hJ5_Xp9p8z7q0w1e2r3t4y5u6i7o8p9a0s1d2f3g4h5j6k7l8/pub?output=csv'; 
+        // ^^^ COLE SEU LINK AQUI DENTRO DAS ASPAS ^^^
+
+        let globalData = [];
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            if(SHEET_URL.includes('PLACEHOLDER') || SHEET_URL.length < 10) {
+                alert("Por favor, edite o arquivo HTML e insira o link CSV do Google Sheets na linha 134.");
+                return;
+            }
+            fetchData();
+        });
+
+        // 1. Buscar Dados
+        function fetchData() {
+            Papa.parse(SHEET_URL, {
+                download: true,
+                header: false, // Usamos false para acessar por índice (Col A = 0, Col N = 13)
+                complete: function(results) {
+                    processData(results.data);
+                },
+                error: function(err) {
+                    console.error("Erro ao ler planilha:", err);
+                    document.getElementById('loading').innerHTML = '<p class="text-red-500">Erro ao carregar dados. Verifique o console.</p>';
+                }
+            });
+        }
+
+        // 2. Processar Dados (Mapeamento das Colunas da Imagem)
+        function processData(rawData) {
+            // Ignora a primeira linha (cabeçalho)
+            const rows = rawData.slice(1);
+
+            const players = {}; // Agregação por nome
+            const matches = [];
+            const highlights = { artilharia: [], assistencia: [] };
+
+            rows.forEach(row => {
+                // --- PARTE 1: ESTATÍSTICAS (Colunas A-L / Índices 0-11) ---
+                const nome = row[2]; // Col C
+                
+                if (nome && nome.trim() !== "") {
+                    // Normalização de números (tratando vazios como 0)
+                    const gols = parseInt(row[3]) || 0;
+                    const assis = parseInt(row[4]) || 0;
+                    const vit = parseInt(row[5]) || 0;
+                    const der = parseInt(row[6]) || 0;
+                    const emp = parseInt(row[7]) || 0;
+                    const pts = parseInt(row[8]) || 0;
+                    
+                    // Verifica Destaques (Col K e L)
+                    // Assumindo que se tiver texto na célula, esse jogador ganhou
+                    if (row[10] && row[10].trim() !== "") highlights.assistencia.push(nome);
+                    if (row[11] && row[11].trim() !== "") highlights.artilharia.push(nome);
+
+                    // Agregação para o Ranking Geral
+                    if (!players[nome]) {
+                        players[nome] = { nome: nome, gols: 0, assis: 0, vit: 0, der: 0, emp: 0, pts: 0 };
+                    }
+                    players[nome].gols += gols;
+                    players[nome].assis += assis;
+                    players[nome].vit += vit;
+                    players[nome].der += der;
+                    players[nome].emp += emp;
+                    players[nome].pts += pts;
+                }
+
+                // --- PARTE 2: PARTIDAS (Colunas N-R / Índices 13-17) ---
+                const labelPartida = row[13]; // Col N
+                if (labelPartida && labelPartida.trim() !== "") {
+                    matches.push({
+                        label: labelPartida,
+                        timeA: row[14],
+                        timeB: row[15],
+                        placarA: row[16],
+                        placarB: row[17]
+                    });
+                }
+            });
+
+            // Converte objeto players para array
+            const rankingArray = Object.values(players);
+            
+            // Ordenação padrão: Pontos > Vitórias > Gols
+            rankingArray.sort((a, b) => b.pts - a.pts || b.vit - a.vit || b.gols - a.gols);
+
+            renderDashboard(rankingArray, matches, highlights);
+        }
+
+        // 3. Renderização na Tela
+        function renderDashboard(ranking, matches, highlights) {
+            const loading = document.getElementById('loading');
+            const dashboard = document.getElementById('dashboard');
+            
+            // Render Highlights
+            const hlContainer = document.getElementById('highlights-container');
+            
+            // Helper para card de destaque
+            const createHighlightCard = (title, icon, names, colorClass) => {
+                const namesString = names.length > 0 ? names.join(", ") : "A definir";
+                return `
+                    <div class="card-retro p-6 flex items-center space-x-4 bg-yellow-50">
+                        <div class="rounded-full bg-${colorClass}-100 p-4 border-2 border-${colorClass}-500">
+                            <i class="fas ${icon} text-2xl text-${colorClass}-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xs uppercase font-bold text-gray-500 tracking-wider">${title}</h3>
+                            <p class="text-xl md:text-2xl font-bold text-purple-900 retro-font mt-1">${namesString}</p>
+                        </div>
+                    </div>
+                `;
+            };
+
+            hlContainer.innerHTML = 
+                createHighlightCard("Artilheiro do Dia", "fa-futbol", highlights.artilharia, "orange") +
+                createHighlightCard("Rei das Assistências", "fa-shoe-prints", highlights.assistencia, "blue");
+
+            // Render Matches
+            const matchContainer = document.getElementById('matches-container');
+            matchContainer.innerHTML = matches.map(m => `
+                <div class="bg-white border-2 border-gray-200 p-4 rounded shadow-sm hover:shadow-md transition">
+                    <div class="text-xs font-bold text-gray-400 mb-2 uppercase border-b pb-1">${m.label}</div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-bold text-gray-700 w-1/2 truncate">${m.timeA}</span>
+                        <span class="font-bold text-2xl text-orange-600">${m.placarA}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-gray-700 w-1/2 truncate">${m.timeB}</span>
+                        <span class="font-bold text-2xl text-orange-600">${m.placarB}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            // Render Ranking
+            renderRankingTable(ranking);
+
+            loading.classList.add('hidden');
+            dashboard.classList.remove('hidden');
+        }
+
+        function renderRankingTable(data) {
+            const tbody = document.getElementById('ranking-body');
+            tbody.innerHTML = data.map((p, index) => `
+                <tr class="border-b border-gray-100 hover:bg-yellow-50 transition">
+                    <td class="p-4 text-purple-900 font-bold">${index + 1}º</td>
+                    <td class="p-4 font-bold uppercase tracking-wide">${p.nome}</td>
+                    <td class="p-4 text-center font-black text-lg text-orange-600 bg-orange-50">${p.pts}</td>
+                    <td class="p-4 text-center text-gray-600">${p.gols}</td>
+                    <td class="p-4 text-center text-gray-600">${p.assis}</td>
+                    <td class="p-4 text-center text-green-600 hidden md:table-cell">${p.vit}</td>
+                    <td class="p-4 text-center text-yellow-600 hidden md:table-cell">${p.emp}</td>
+                    <td class="p-4 text-center text-red-600 hidden md:table-cell">${p.der}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Função simples de ordenação (bubble sort simplificado para a demo)
+        let currentSort = 'pts';
+        function sortTable(criteria) {
+            alert("A ordenação é automática por pontos. Implementação de reordenação manual pronta para expansão!");
+            // Aqui você pode implementar a lógica de reordenar o array `globalData` e chamar renderRankingTable novamente.
+        }
+
+    </script>
+</body>
+</html>
